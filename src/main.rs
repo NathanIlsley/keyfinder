@@ -22,17 +22,17 @@ async fn main() {
     loop {
         clear_background(DARKBLUE);
 
-        if (is_key_down(KeyCode::D)) {
-            x += 1.0;
+        if is_key_down(KeyCode::D) {
+            x += 5.0;
         }
-        if (is_key_down(KeyCode::A)) {
-            x -= 1.0;
+        if is_key_down(KeyCode::A) {
+            x -= 5.0;
         }
-        if (is_key_down(KeyCode::W)) {
-            y -= 1.0;
+        if is_key_down(KeyCode::W) {
+            y -= 5.0;
         }
-        if (is_key_down(KeyCode::S)) {
-            y += 1.0;
+        if is_key_down(KeyCode::S) {
+            y += 5.0;
         }
 
         draw_circle(x, y, 16.0, YELLOW);
