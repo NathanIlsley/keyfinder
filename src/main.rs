@@ -16,8 +16,27 @@ fn window_conf() -> Conf{
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    let mut x = screen_width() / 2.0;
+    let mut y = screen_height() / 2.0;
+
     loop {
         clear_background(DARKBLUE);
+
+        if (is_key_down(KeyCode::D)) {
+            x += 1.0;
+        }
+        if (is_key_down(KeyCode::A)) {
+            x -= 1.0;
+        }
+        if (is_key_down(KeyCode::W)) {
+            y -= 1.0;
+        }
+        if (is_key_down(KeyCode::S)) {
+            y += 1.0;
+        }
+
+        draw_circle(x, y, 16.0, YELLOW);
+
         next_frame().await;
     }
 }
