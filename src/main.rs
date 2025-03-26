@@ -4,9 +4,9 @@ use macroquad::{miniquad::conf::Platform, prelude::*};
 fn window_conf() -> Conf{
     Conf {
         window_title: String::from("Key Finder"),
-        window_width: 1600,
-        window_height: 1000,
-        high_dpi: true,
+        window_width: 800,
+        window_height: 500,
+        high_dpi: false,
         fullscreen: false,
         sample_count: 1,
         window_resizable: false,
