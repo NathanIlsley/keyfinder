@@ -4,9 +4,9 @@ use macroquad::{miniquad::conf::Platform, prelude::*};
 fn window_conf() -> Conf{
     Conf {
         window_title: String::from("Key Finder"),
-        window_width: 640,
-        window_height: 400,
-        high_dpi: false,
+        window_width: 1600,
+        window_height: 1000,
+        high_dpi: true,
         fullscreen: false,
         sample_count: 1,
         window_resizable: false,
@@ -15,13 +15,17 @@ fn window_conf() -> Conf{
     }
 }
 
+struct Sprite {
+    position: [f32; 2],
+    velocity: [f32; 2],
+}
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    const X_MOVEMENT_SPEED: f32 = 200.0;
-    const Y_MOVEMENT_SPEED: f32 = 800.0;
-    const JUMP_SPEED: f32 = 600.0;
-    const GRAVITY: f32 = 1000.0;
+    const X_MOVEMENT_SPEED: f32 = 400.0;
+    const Y_MOVEMENT_SPEED: f32 = 1600.0;
+    const JUMP_SPEED: f32 = 1000.0;
+    const GRAVITY: f32 = 2000.0;
     const CIRCLE_RADIUS: f32 = 16.0;
 
     let mut x = screen_width() / 2.0;
@@ -55,6 +59,12 @@ async fn main() {
             ydot = 0.0;
         }
         y = yclamp;
+
+        // set_camera(&Camera2D {
+        //     zoom: vec2(1.0 / 1600.0, 1.0 / 1000.0), // Normalizes the coordinate system
+        //     target: vec2(1600.0 / 2.0, 1000.0 / 2.0),
+        //     ..Default::default()
+        // });
 
         draw_circle(x, y, CIRCLE_RADIUS, YELLOW);
 

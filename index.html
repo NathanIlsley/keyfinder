@@ -8,7 +8,7 @@
         html,
         body,
         canvas {
-            margin: 0;
+            margin: auto;
             padding: 0;
             width: 100%;
             height: 100%;
@@ -16,11 +16,22 @@
             position: absolute;
             background: black;
             z-index: 0;
+            display: block;
         }
     </style>
 </head>
 <body>
     <canvas id="glcanvas" tabindex='1'></canvas>
+    <script>
+        function resizeCanvas() {
+            let canvas = document.getElementById("glcanvas");
+            canvas.width = 1600;
+            canvas.height = 1000;
+        }
+
+        window.onload = resizeCanvas;
+        window.onresize = resizeCanvas;
+    </script>
     <!-- Minified and statically hosted version of https://github.com/not-fl3/macroquad/blob/master/js/mq_js_bundle.js -->
     <script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>
     <script>load("keyfinder.wasm");</script> <!-- Your compiled WASM binary -->
