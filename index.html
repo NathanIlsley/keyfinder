@@ -8,30 +8,80 @@
         html,
         body,
         canvas {
-            margin: auto;
+            margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
             position: absolute;
             background: black;
+            z-index: 0;<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Key Finder</title>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            background-color: black;
+        }
+        .container {
+            display: grid;
+            place-items: center;
+            height: 100%;
+        }
+        canvas {
+            width: 800px;
+            height: 500px;
+            /* margin: 0 auto; */   
+            overflow: hidden;
+            position: absolute;
+            background: black;
             z-index: 0;
-            display: block;
+        }
+        canvas:focus {
+            outline: none;
+        }
+    </style>
+    <script>
+        window.onload = function () {
+            const canv = document.getElementById("glcanvas");
+
+            if (!canv) {
+                console.error("Canvas not found!");
+                return;
+            }
+            
+            document.addEventListener("click", () => {
+                canv.focus();
+            });
+            canv.addEventListener('click', () => {
+                canv.focus();
+            })
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <canvas id="glcanvas" tabindex='-1'>
+            <!-- Minified and statically hosted version of https://github.com/not-fl3/macroquad/blob/master/js/mq_js_bundle.js -->
+            <script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>
+            <script>
+                load("keyfinder.wasm");
+            </script>
+        </canvas>
+    </div>
+</body>
+</html>
+
         }
     </style>
 </head>
 <body>
     <canvas id="glcanvas" tabindex='1'></canvas>
-    <script>
-        function resizeCanvas() {
-            let canvas = document.getElementById("glcanvas");
-            canvas.width = 1600;
-            canvas.height = 1000;
-        }
-
-        window.onload = resizeCanvas;
-        window.onresize = resizeCanvas;
-    </script>
     <!-- Minified and statically hosted version of https://github.com/not-fl3/macroquad/blob/master/js/mq_js_bundle.js -->
     <script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>
     <script>load("keyfinder.wasm");</script> <!-- Your compiled WASM binary -->
