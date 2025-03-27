@@ -1,6 +1,6 @@
 use std::{f32::INFINITY, thread::sleep, time::Duration};
 
-use macroquad::{miniquad::conf::Platform, prelude::{coroutines::wait_seconds, *}, telemetry::frame};
+use macroquad::{miniquad::conf::Platform, prelude::*};
 
 fn window_conf() -> Conf{
     Conf {
@@ -178,11 +178,15 @@ impl Player {
                 );
 
                 if overlap.y < overlap.x {
-                    self.position.y = if dist.y < 0.0 {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS};
-                    self.velocity.y = 0.0;
+                    if self.velocity.y * dist.y <= 0.0 {
+                        self.position.y = if dist.y < 0.0 {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS};
+                        self.velocity.y = 0.0;
+                    }
                 } else {
-                    self.position.x = if dist.x < 0.0 {plat.position.x - plat.dimensions.x / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.x + plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS};
-                    self.velocity.x = 0.0;
+                    if self.velocity.x * dist.x <= 0.0 {
+                        self.position.x = if dist.x < 0.0 {plat.position.x - plat.dimensions.x / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.x + plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS};
+                        self.velocity.x = 0.0;
+                    }
                 }
             }
         }
@@ -247,7 +251,7 @@ impl Screen {
 
     fn update(&mut self, player: &mut Player, platforms: Vec<&mut Plat>) {
 
-        self.scroll_pos += if self.scroll_pos <= 0.0 && player.adjusted_y() > screen_height() * 0.6 {0.0} else {screen_height() * 0.6 - player.adjusted_y()};
+        self.scroll_pos += 0.1 * if self.scroll_pos <= 0.0 && player.adjusted_y() > screen_height() * 0.6 {0.0} else {screen_height() * 0.6 - player.adjusted_y()};
 
         player.set_scroll(self.scroll_pos);
         for plat in platforms {
