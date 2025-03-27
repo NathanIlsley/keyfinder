@@ -1,3 +1,4 @@
+use core::num;
 use std::{f32::INFINITY, thread::sleep, time::Duration};
 
 use macroquad::{miniquad::conf::Platform, prelude::*};
@@ -104,10 +105,10 @@ struct Player {
 }
 
 impl Player {
-    const GRAVITY: f32 = 2000.0;
-    const X_MOVEMENT_SPEED: f32 = 400.0;
-    const X_RESPONSIVENESS: f32 = 2000.0;
-    const JUMP_SPEED: f32 = 700.0;
+    const GRAVITY: f32 = 4000.0;
+    const X_MOVEMENT_SPEED: f32 = 600.0;
+    const X_RESPONSIVENESS: f32 = 5000.0;
+    const JUMP_SPEED: f32 = 800.0;
     
     const CIRCLE_RADIUS: f32 = 16.0;
 
@@ -127,20 +128,22 @@ impl Player {
     //     self.platforms = plats;
     // }
     
-    fn update(&mut self, platforms: Vec<&Plat>) {
+    fn update(&mut self, platforms: &[Plat]) {
         let delta_time = get_frame_time();
 
         // Inputs
-        self.velocity.x += match (is_key_down(KeyCode::D), is_key_down(KeyCode::A)) {
-            (true, false) => Player::X_RESPONSIVENESS * delta_time,
-            (false, true) => -Player::X_RESPONSIVENESS * delta_time,
-            _             => Player::X_RESPONSIVENESS * if self.velocity.x.abs() > 40.0 {-self.velocity.x / self.velocity.x.abs()} else {self.velocity.x = 0.0; 0.0} * delta_time,
-        };
+        if self.jump_time <= 0.05 {
+            self.velocity.x += match (is_key_down(KeyCode::D), is_key_down(KeyCode::A)) {
+                (true, false) => Player::X_RESPONSIVENESS * delta_time,
+                (false, true) => -Player::X_RESPONSIVENESS * delta_time,
+                _             => Player::X_RESPONSIVENESS * if self.velocity.x.abs() > 40.0 {-self.velocity.x / self.velocity.x.abs()} else {self.velocity.x = 0.0; 0.0} * delta_time,
+            };
+        }
 
         self.velocity.x = clamp(self.velocity.x, -Player::X_MOVEMENT_SPEED, Player::X_MOVEMENT_SPEED);
 
-        if is_key_down(KeyCode::W) && self.jump_time <= 0.2 {
-            self.velocity.y = -Player::JUMP_SPEED;
+        if is_key_down(KeyCode::W) && self.jump_time <= 0.4 {
+            self.velocity.y = -Player::JUMP_SPEED * (1.0 - self.jump_time.powf(2.0));
         }
         
         if self.grounded {
@@ -178,15 +181,11 @@ impl Player {
                 );
 
                 if overlap.y < overlap.x {
-                    if self.velocity.y * dist.y <= 0.0 {
-                        self.position.y = if dist.y < 0.0 {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS};
-                        self.velocity.y = 0.0;
-                    }
+                    self.position.y = if dist.y < 0.0 {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS} else {self.jump_time = INFINITY; plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS};
+                    self.velocity.y = 0.0;
                 } else {
-                    if self.velocity.x * dist.x <= 0.0 {
-                        self.position.x = if dist.x < 0.0 {plat.position.x - plat.dimensions.x / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.x + plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS};
-                        self.velocity.x = 0.0;
-                    }
+                    self.position.x = if dist.x < 0.0 {plat.position.x - plat.dimensions.x / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.x + plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS};
+                    self.velocity.x = 0.0;
                 }
             }
         }
@@ -249,7 +248,7 @@ impl Screen {
     //     self.platforms = plats;
     // }
 
-    fn update(&mut self, player: &mut Player, platforms: Vec<&mut Plat>) {
+    fn update(&mut self, player: &mut Player, platforms: &mut [Plat]) {
 
         self.scroll_pos += 0.1 * if self.scroll_pos <= 0.0 && player.adjusted_y() > screen_height() * 0.6 {0.0} else {screen_height() * 0.6 - player.adjusted_y()};
 
@@ -260,13 +259,21 @@ impl Screen {
     }
 }
 
+fn generate_platforms() -> Vec<Plat> {
+    let num_of_platforms = 20;
+    let mut platforms = vec![];
+
+    for i in 0..num_of_platforms {
+        platforms.append(&mut vec![Plat::new(100.0 + (i % 2) as f32 * 300.0, screen_height() - i as f32 * 200.0, 300.0, 25.0)]);
+    }
+
+    platforms
+}
+
 #[macroquad::main(window_conf)]
 async fn main() {
     let mut player = Player::new();
-    let mut platform1 = Plat::new(200.0, 300.0, 300.0, 25.0);
-    let mut platform2 = Plat::new(500.0, 100.0, 300.0, 25.0);
-    let mut platform3 = Plat::new(650.0, 400.0, 300.0, 25.0);
-    let mut platform4 = Plat::new(200.0, -100.0, 300.0, 25.0);
+    let mut platforms = generate_platforms();
     let mut screen = Screen::new();
 
     // player.set_plats(platforms);
@@ -275,13 +282,13 @@ async fn main() {
     loop {
         clear_background(DARKBLUE);
         
-        player.update(vec![&platform1, &platform2, &platform3, &platform4]);
-        platform1.update();
-        platform2.update();
-        platform3.update();
-        platform4.update();
+        player.update(&platforms);
 
-        screen.update(&mut player, vec![&mut platform1, &mut platform2, &mut platform3, &mut platform4]);
+        for platform in &mut platforms {
+            platform.update();
+        }
+
+        screen.update(&mut player, &mut platforms);
 
         // println!("{}", get_fps());
         
