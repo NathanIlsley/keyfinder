@@ -96,12 +96,14 @@ struct Player {
     velocity: Vector2,
     platforms: Vec<Plat>,
     grounded: bool,
+    jump_time: f32,
 }
 
 impl Player {
     const GRAVITY: f32 = 2000.0;
     const X_MOVEMENT_SPEED: f32 = 400.0;
-    const JUMP_SPEED: f32 = 1000.0;
+    const X_RESPONSIVENESS: f32 = 2000.0;
+    const JUMP_SPEED: f32 = 700.0;
     
     const CIRCLE_RADIUS: f32 = 16.0;
 
@@ -111,6 +113,7 @@ impl Player {
             velocity: Vector2 { x: 0.0, y: 0.0 },
             platforms: vec![],
             grounded: false,
+            jump_time: 0.0,
         }
     }
 
@@ -122,14 +125,24 @@ impl Player {
         let delta_time = get_frame_time();
 
         // Inputs
-        self.velocity.x = match (is_key_down(KeyCode::D), is_key_down(KeyCode::A)) {
-            (true, false) => Player::X_MOVEMENT_SPEED,
-            (false, true) => -Player::X_MOVEMENT_SPEED,
-            _             => 0.0,
+        self.velocity.x += match (is_key_down(KeyCode::D), is_key_down(KeyCode::A)) {
+            (true, false) => Player::X_RESPONSIVENESS * delta_time,
+            (false, true) => -Player::X_RESPONSIVENESS * delta_time,
+            _             => Player::X_RESPONSIVENESS * if self.velocity.x.abs() > 40.0 {-self.velocity.x / self.velocity.x.abs()} else {self.velocity.x = 0.0; 0.0} * delta_time,
         };
 
-        if is_key_down(KeyCode::W) && self.grounded {
+        self.velocity.x = clamp(self.velocity.x, -Player::X_MOVEMENT_SPEED, Player::X_MOVEMENT_SPEED);
+
+        // self.jump_time += delta_time;
+
+        if is_key_down(KeyCode::W) && self.jump_time <= 0.2 {
             self.velocity.y = -Player::JUMP_SPEED;
+        }
+        
+        if self.grounded {
+            self.jump_time = 0.0;
+        } else {
+            self.jump_time += delta_time;
         }
 
         // Apply gravity
@@ -150,11 +163,17 @@ impl Player {
         }
 
         let mut dist: Vector2;
+        let mut overlap: Vector2;
 
         for plat in &self.platforms {
             dist = self.position.sub(&plat.position);
-            if dist.x.abs() < plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS && dist.y.abs() < plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS { //top && bot && lef && rig {
-                if dist.x.abs() / plat.dimensions.x < dist.y.abs() / plat.dimensions.y {
+            if dist.x.abs() < plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS && dist.y.abs() < plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS {
+                overlap = Vector2::new(
+                    if dist.x > 0.0 {plat.position.x + plat.dimensions.x / 2.0 - (self.position.x - Player::CIRCLE_RADIUS)} else {self.position.x + Player::CIRCLE_RADIUS - (plat.position.x - plat.dimensions.x / 2.0)},
+                    if dist.y > 0.0 {plat.position.y + plat.dimensions.y / 2.0 - (self.position.y - Player::CIRCLE_RADIUS)} else {self.position.y + Player::CIRCLE_RADIUS - (plat.position.y - plat.dimensions.y / 2.0)},
+                );
+
+                if overlap.y < overlap.x {
                     self.position.y = if dist.y < 0.0 {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS};
                     self.velocity.y = 0.0;
                 } else {
@@ -205,6 +224,8 @@ async fn main() {
         platform1.update();
         platform2.update();
         platform3.update();
+
+        // println!("{}", get_fps());
 
         next_frame().await;
     }
