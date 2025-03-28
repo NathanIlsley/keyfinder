@@ -136,7 +136,7 @@ impl Player {
             self.velocity.x += match (is_key_down(KeyCode::D), is_key_down(KeyCode::A)) {
                 (true, false) => Player::X_RESPONSIVENESS * delta_time,
                 (false, true) => -Player::X_RESPONSIVENESS * delta_time,
-                _             => Player::X_RESPONSIVENESS * if self.velocity.x.abs() > 40.0 {-self.velocity.x / self.velocity.x.abs()} else {self.velocity.x = 0.0; 0.0} * delta_time,
+                _             => Player::X_RESPONSIVENESS * if self.velocity.x.abs() > Player::X_RESPONSIVENESS * delta_time {-self.velocity.x / self.velocity.x.abs()} else {self.velocity.x = 0.0; 0.0} * delta_time,
             };
         }
 
@@ -181,10 +181,18 @@ impl Player {
                 );
 
                 if overlap.y < overlap.x {
-                    self.position.y = if dist.y < 0.0 {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS} else {self.jump_time = INFINITY; plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS};
+                    if self.velocity.y * dist.y <= 0.0 {
+                        self.position.y = if dist.y < 0.0 {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS} else {self.jump_time = INFINITY; plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS};
+                    } else {
+                        self.position.y = if dist.y < 0.0 {self.jump_time = INFINITY; plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS} else {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS};
+                    }
                     self.velocity.y = 0.0;
                 } else {
-                    self.position.x = if dist.x < 0.0 {plat.position.x - plat.dimensions.x / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.x + plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS};
+                    if self.velocity.x * dist.x <= 0.0 {
+                        self.position.x = if dist.x < 0.0 {plat.position.x - plat.dimensions.x / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.x + plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS};
+                    } else {
+                        self.position.x = if dist.x < 0.0 {plat.position.x + plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS} else {plat.position.x - plat.dimensions.x / 2.0 - Player::CIRCLE_RADIUS};
+                    }
                     self.velocity.x = 0.0;
                 }
             }
