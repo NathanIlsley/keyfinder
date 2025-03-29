@@ -241,7 +241,7 @@ impl Plat {
         // Draw on screen
         let adjusted_y = self.position.y + self.scroll; // Adjust y for scroll
 
-        if adjusted_y > -self.dimensions.y && adjusted_y < screen_height() {
+        if adjusted_y > -self.dimensions.y && adjusted_y < screen_height() + self.dimensions.y {
             draw_rectangle(self.position.x - self.dimensions.x / 2.0, adjusted_y - self.dimensions.y / 2.0, self.dimensions.x, self.dimensions.y, WHITE);
         }
     }
