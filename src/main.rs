@@ -288,8 +288,23 @@ fn generate_platforms() -> Vec<Plat> {
     // platforms.append(&mut vec![Plat::new(screen_width() - 250., screen_height() - 100., 50., 50.)]);
     // platforms.append(&mut vec![Plat::new(screen_width() - 300., screen_height() - 100., 50., 0.)]);
 
-    platforms.append(&mut vec![Plat::new(screen_width() - 100., screen_height() - 100., 300., 25.)]);
-    platforms.append(&mut vec![Plat::new(screen_width() - 100., screen_height() - 200., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(0., screen_height() - 100., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 200., 150., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width(), screen_height() - 300., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 400., 150., 25.)]);
+    platforms.append(&mut vec![Plat::new(0., screen_height() - 500., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 600., 150., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width(), screen_height() - 700., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 800., 150., 25.)]);
+    platforms.append(&mut vec![Plat::new(0., screen_height() - 900., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 1000., 150., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width(), screen_height() - 1100., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 1200., 150., 25.)]);
+    platforms.append(&mut vec![Plat::new(0., screen_height() - 1300., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 1400., 150., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width(), screen_height() - 1500., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 1600., 150., 25.)]);
+
 
     platforms
 }
