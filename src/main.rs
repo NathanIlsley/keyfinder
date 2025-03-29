@@ -199,7 +199,7 @@ impl Player {
                     if dist.x > 0.0 {plat.position.x + plat.dimensions.x / 2.0 - (self.position.x - Player::CIRCLE_RADIUS)} else {self.position.x + Player::CIRCLE_RADIUS - (plat.position.x - plat.dimensions.x / 2.0)},
                     if dist.y > 0.0 {plat.position.y + plat.dimensions.y / 2.0 - (self.position.y - Player::CIRCLE_RADIUS)} else {self.position.y + Player::CIRCLE_RADIUS - (plat.position.y - plat.dimensions.y / 2.0)},
                 );
-
+                
                 if overlap.y < overlap.x {
                     self.position.y = if dist.y < 0.0 {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS};
                     self.velocity.y = 0.0;
@@ -218,9 +218,111 @@ impl Player {
     fn set_scroll(&mut self, scroll: f32) {
         self.scroll = scroll;
     }
-
+    
     fn adjusted_y(&self) -> f32 {
         self.position.y + self.scroll
+    }
+}
+
+struct Enemy {
+    position: Vector2,
+    velocity: Vector2,
+    grounded: bool,
+    
+    scroll: f32,
+}
+
+impl Enemy {
+    const DIMENSION: f32 = 16.0;
+
+    fn new(x: f32, y: f32, vel_x: f32) -> Self {
+        Self { position: Vector2::new(x, y) , velocity: Vector2::new(vel_x, 0.0), scroll: 0.0, grounded: false }
+    }
+
+    fn update(&mut self, platforms: &[Plat], player: &Player) {
+        let delta_time = get_frame_time();
+
+        // Apply gravity
+        self.velocity.y += Player::GRAVITY * delta_time;
+
+        // Update Position
+        self.position = self.position.add(&self.velocity.mul(delta_time));
+
+        // Check Collisions
+        self.grounded = false;
+
+        let pos_clamp = self.position.clamp(Enemy::DIMENSION, screen_width() - Enemy::DIMENSION, -f32::INFINITY, screen_height() - Enemy::DIMENSION);
+        if pos_clamp.y != 0.0 {
+            self.velocity.y = 0.0;
+            
+            if self.position.y == screen_height() - Enemy::DIMENSION {
+                self.grounded = true;
+            }
+        }
+
+        if pos_clamp.x != 0.0 {
+            self.velocity.x = -self.velocity.x
+        }
+
+        let mut dist: Vector2;
+        let mut prev_dist: Vector2;
+        let mut overlap: Vector2;
+        let mut in_x: bool;
+        let mut in_y: bool;
+
+        for plat in platforms {
+            dist = self.position.sub(&plat.position);
+            prev_dist = self.position.sub(&(plat.position.sub(&self.velocity.mul(delta_time))));
+
+            in_x = dist.x.abs() < plat.dimensions.x / 2.0 + Enemy::DIMENSION;
+            in_y = dist.y.abs() < plat.dimensions.y / 2.0 + Enemy::DIMENSION;
+
+            if (in_x && in_y) || (prev_dist.x * dist.x < 0.0 && in_y || prev_dist.y * dist.y < 0.0 && in_x || prev_dist.x * dist.x < 0.0 && prev_dist.y * dist.y < 0.0) {
+                overlap = Vector2::new(
+                    if dist.x > 0.0 {plat.position.x + plat.dimensions.x / 2.0 - (self.position.x - Enemy::DIMENSION)} else {self.position.x + Enemy::DIMENSION - (plat.position.x - plat.dimensions.x / 2.0)},
+                    if dist.y > 0.0 {plat.position.y + plat.dimensions.y / 2.0 - (self.position.y - Enemy::DIMENSION)} else {self.position.y + Enemy::DIMENSION - (plat.position.y - plat.dimensions.y / 2.0)},
+                );
+                
+                if overlap.y < overlap.x {
+                    self.position.y = if dist.y < 0.0 {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Enemy::DIMENSION} else {plat.position.y + plat.dimensions.y / 2.0 + Enemy::DIMENSION};
+                    self.velocity.y = 0.0;
+                } else {
+                    self.position.x = if dist.x < 0.0 {plat.position.x - plat.dimensions.x / 2.0 - Enemy::DIMENSION} else {plat.position.x + plat.dimensions.x / 2.0 + Enemy::DIMENSION};
+                    self.velocity.x = -self.velocity.x;
+                }
+            }
+        }
+
+        dist = self.position.sub(&player.position);
+        prev_dist = self.position.sub(&(player.position.sub(&self.velocity.mul(delta_time))));
+
+        in_x = dist.x.abs() < Player::CIRCLE_RADIUS / 2.0 + Enemy::DIMENSION;
+        in_y = dist.y.abs() < Player::CIRCLE_RADIUS / 2.0 + Enemy::DIMENSION;
+
+        if (in_x && in_y) || (prev_dist.x * dist.x < 0.0 && in_y || prev_dist.y * dist.y < 0.0 && in_x || prev_dist.x * dist.x < 0.0 && prev_dist.y * dist.y < 0.0) {
+            overlap = Vector2::new(
+                if dist.x > 0.0 {player.position.x + Player::CIRCLE_RADIUS / 2.0 - (self.position.x - Enemy::DIMENSION)} else {self.position.x + Enemy::DIMENSION - (player.position.x - Player::CIRCLE_RADIUS / 2.0)},
+                if dist.y > 0.0 {player.position.y + Player::CIRCLE_RADIUS / 2.0 - (self.position.y - Enemy::DIMENSION)} else {self.position.y + Enemy::DIMENSION - (player.position.y - Player::CIRCLE_RADIUS / 2.0)},
+            );
+            
+            if overlap.y < overlap.x {
+                self.position.y = if dist.y < 0.0 {self.grounded = true; player.position.y - Player::CIRCLE_RADIUS / 2.0 - Enemy::DIMENSION} else {player.position.y + Player::CIRCLE_RADIUS / 2.0 + Enemy::DIMENSION};
+                self.velocity.y = 0.0;
+            } else {
+                self.position.x = if dist.x < 0.0 {player.position.x - Player::CIRCLE_RADIUS / 2.0 - Enemy::DIMENSION} else {player.position.x + Player::CIRCLE_RADIUS / 2.0 + Enemy::DIMENSION};
+                self.velocity.x = -self.velocity.x;
+            }
+        }
+
+        // Draw on screen
+        let adjusted_y = self.position.y + self.scroll;
+        if adjusted_y > -Enemy::DIMENSION && adjusted_y < screen_height() + Enemy::DIMENSION {
+            draw_circle(self.position.x, adjusted_y, Enemy::DIMENSION, RED);
+        }
+    }
+
+    fn set_scroll(&mut self, scroll: f32) {
+        self.scroll = scroll;
     }
 }
 
@@ -268,13 +370,16 @@ impl Screen {
     //     self.platforms = plats;
     // }
 
-    fn update(&mut self, player: &mut Player, platforms: &mut [Plat]) {
+    fn update(&mut self, player: &mut Player, platforms: &mut [Plat], enemies: &mut [Enemy]) {
 
         self.scroll_pos += 0.1 * if self.scroll_pos <= 0.0 && player.adjusted_y() > screen_height() * 0.6 {0.0} else {screen_height() * 0.6 - player.adjusted_y()};
 
         player.set_scroll(self.scroll_pos);
         for plat in platforms {
             plat.set_scroll(self.scroll_pos);
+        }
+        for enemy in enemies {
+            enemy.set_scroll(self.scroll_pos);
         }
     }
 }
@@ -293,6 +398,7 @@ fn generate_platforms() -> Vec<Plat> {
 #[macroquad::main(window_conf)]
 async fn main() {
     let mut player = Player::new();
+    let mut enemies = vec![Enemy::new(200.0, 200.0, 800.0)];
     let mut platforms = generate_platforms();
     let mut screen = Screen::new();
 
@@ -304,11 +410,15 @@ async fn main() {
         
         player.update(&platforms);
 
+        for enemy in &mut enemies {
+            enemy.update(&platforms, &player);
+        }
+
         for platform in &mut platforms {
             platform.update();
         }
 
-        screen.update(&mut player, &mut platforms);
+        screen.update(&mut player, &mut platforms, &mut enemies);
 
         // println!("{}", get_fps());
         
