@@ -106,10 +106,10 @@ struct Player {
 
 impl Player {
     const GRAVITY: f32 = 4000.0;
-    const X_MOVEMENT_SPEED: f32 = 600.0;
-    const X_RESPONSIVENESS: f32 = 5000.0;
-    const X_RESPONSIVENESS_AIR: f32 = 1000.0;
-    const JUMP_SPEED: f32 = 700.0;
+    const X_MOVEMENT_SPEED: f32 = 500.0;
+    const X_RESPONSIVENESS: f32 = 3000.0;
+    const X_RESPONSIVENESS_AIR: f32 = 1500.0;
+    const JUMP_SPEED: f32 = 600.0;
     
     const CIRCLE_RADIUS: f32 = 16.0;
 
@@ -201,7 +201,7 @@ impl Player {
                 );
                 
                 if overlap.y < overlap.x {
-                    self.position.y = if dist.y < 0.0 {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS};
+                    self.position.y = if dist.y < 0.0 {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS} else {self.jump_time = 0.0; plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS};
                     self.velocity.y = 0.0;
                 } else {
                     self.position.x = if dist.x < 0.0 {plat.position.x - plat.dimensions.x / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.x + plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS};
@@ -385,12 +385,31 @@ impl Screen {
 }
 
 fn generate_platforms() -> Vec<Plat> {
-    let num_of_platforms = 20;
     let mut platforms = vec![];
 
-    for i in 0..num_of_platforms {
-        platforms.append(&mut vec![Plat::new(100.0 + (i % 2) as f32 * 300.0, screen_height() - i as f32 * 200.0, 300.0, 25.0)]);
-    }
+    // platforms.append(&mut vec![Plat::new(screen_width() - 100., screen_height() - 100., 50., 200.)]);
+    // platforms.append(&mut vec![Plat::new(screen_width() - 150., screen_height() - 100., 50., 150.)]);
+    // platforms.append(&mut vec![Plat::new(screen_width() -200., screen_height() - 100., 50., 100.)]);
+    // platforms.append(&mut vec![Plat::new(screen_width() - 250., screen_height() - 100., 50., 50.)]);
+    // platforms.append(&mut vec![Plat::new(screen_width() - 300., screen_height() - 100., 50., 0.)]);
+
+    platforms.append(&mut vec![Plat::new(0., screen_height() - 100., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 200., 150., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width(), screen_height() - 300., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 400., 150., 25.)]);
+    platforms.append(&mut vec![Plat::new(0., screen_height() - 500., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 600., 150., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width(), screen_height() - 700., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 800., 150., 25.)]);
+    platforms.append(&mut vec![Plat::new(0., screen_height() - 900., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 1000., 150., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width(), screen_height() - 1100., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 1200., 150., 25.)]);
+    platforms.append(&mut vec![Plat::new(0., screen_height() - 1300., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 1400., 150., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width(), screen_height() - 1500., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 400., screen_height() - 1600., 150., 25.)]);
+
 
     platforms
 }
