@@ -242,6 +242,10 @@ impl Enemy {
     fn update(&mut self, platforms: &[Plat], player: &Player) {
         let delta_time = get_frame_time();
 
+        if self.grounded {
+            self.velocity.y = -2000.0;
+        }
+
         // Apply gravity
         self.velocity.y += Player::GRAVITY * delta_time;
 
