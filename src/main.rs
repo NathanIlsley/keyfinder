@@ -280,12 +280,16 @@ impl Screen {
 }
 
 fn generate_platforms() -> Vec<Plat> {
-    let num_of_platforms = 20;
     let mut platforms = vec![];
 
-    for i in 0..num_of_platforms {
-        platforms.append(&mut vec![Plat::new(100.0 + (i % 2) as f32 * 300.0, screen_height() - i as f32 * 200.0, 300.0, 25.0)]);
-    }
+    // platforms.append(&mut vec![Plat::new(screen_width() - 100., screen_height() - 100., 50., 200.)]);
+    // platforms.append(&mut vec![Plat::new(screen_width() - 150., screen_height() - 100., 50., 150.)]);
+    // platforms.append(&mut vec![Plat::new(screen_width() -200., screen_height() - 100., 50., 100.)]);
+    // platforms.append(&mut vec![Plat::new(screen_width() - 250., screen_height() - 100., 50., 50.)]);
+    // platforms.append(&mut vec![Plat::new(screen_width() - 300., screen_height() - 100., 50., 0.)]);
+
+    platforms.append(&mut vec![Plat::new(screen_width() - 100., screen_height() - 100., 300., 25.)]);
+    platforms.append(&mut vec![Plat::new(screen_width() - 100., screen_height() - 200., 300., 25.)]);
 
     platforms
 }
