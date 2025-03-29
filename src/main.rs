@@ -106,10 +106,10 @@ struct Player {
 
 impl Player {
     const GRAVITY: f32 = 4000.0;
-    const X_MOVEMENT_SPEED: f32 = 600.0;
-    const X_RESPONSIVENESS: f32 = 5000.0;
-    const X_RESPONSIVENESS_AIR: f32 = 1000.0;
-    const JUMP_SPEED: f32 = 700.0;
+    const X_MOVEMENT_SPEED: f32 = 500.0;
+    const X_RESPONSIVENESS: f32 = 3000.0;
+    const X_RESPONSIVENESS_AIR: f32 = 1500.0;
+    const JUMP_SPEED: f32 = 600.0;
     
     const CIRCLE_RADIUS: f32 = 16.0;
 
@@ -201,7 +201,7 @@ impl Player {
                 );
 
                 if overlap.y < overlap.x {
-                    self.position.y = if dist.y < 0.0 {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS};
+                    self.position.y = if dist.y < 0.0 {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS} else {self.jump_time = 0.0; plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS};
                     self.velocity.y = 0.0;
                 } else {
                     self.position.x = if dist.x < 0.0 {plat.position.x - plat.dimensions.x / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.x + plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS};
