@@ -1,5 +1,5 @@
 use core::num;
-use std::{f32::INFINITY, thread::sleep, time::Duration};
+use std::{thread::sleep, time::Duration};
 
 use macroquad::{miniquad::conf::Platform, prelude::*};
 
@@ -108,7 +108,8 @@ impl Player {
     const GRAVITY: f32 = 4000.0;
     const X_MOVEMENT_SPEED: f32 = 600.0;
     const X_RESPONSIVENESS: f32 = 5000.0;
-    const JUMP_SPEED: f32 = 800.0;
+    const X_RESPONSIVENESS_AIR: f32 = 1000.0;
+    const JUMP_SPEED: f32 = 700.0;
     
     const CIRCLE_RADIUS: f32 = 16.0;
 
@@ -132,28 +133,39 @@ impl Player {
         let delta_time = get_frame_time();
 
         // Inputs
-        if self.jump_time <= 0.05 {
+        if self.grounded {
             self.velocity.x += match (is_key_down(KeyCode::D), is_key_down(KeyCode::A)) {
                 (true, false) => Player::X_RESPONSIVENESS * delta_time,
                 (false, true) => -Player::X_RESPONSIVENESS * delta_time,
+                _             => Player::X_RESPONSIVENESS * if self.velocity.x.abs() > Player::X_RESPONSIVENESS * delta_time {-self.velocity.x / self.velocity.x.abs()} else {self.velocity.x = 0.0; 0.0} * delta_time,
+            };
+        } else {
+            self.velocity.x += match (is_key_down(KeyCode::D), is_key_down(KeyCode::A)) {
+                (true, false) => Player::X_RESPONSIVENESS_AIR * delta_time,
+                (false, true) => -Player::X_RESPONSIVENESS_AIR * delta_time,
                 _             => Player::X_RESPONSIVENESS * if self.velocity.x.abs() > Player::X_RESPONSIVENESS * delta_time {-self.velocity.x / self.velocity.x.abs()} else {self.velocity.x = 0.0; 0.0} * delta_time,
             };
         }
 
         self.velocity.x = clamp(self.velocity.x, -Player::X_MOVEMENT_SPEED, Player::X_MOVEMENT_SPEED);
 
-        if is_key_down(KeyCode::W) && self.jump_time <= 0.4 {
-            self.velocity.y = -Player::JUMP_SPEED * (1.0 - self.jump_time.powf(2.0));
-        }
-        
-        if self.grounded {
-            self.jump_time = 0.0;
+        if is_key_down(KeyCode::W) {
+            if self.grounded {
+                // Apply jump velocity
+                self.velocity.y = -Player::JUMP_SPEED;
+                self.jump_time = 0.3;
+            } else if self.jump_time != 0.0 {
+                self.jump_time -= delta_time;
+            }
         } else {
-            self.jump_time += delta_time;
+            self.jump_time = 0.0;
         }
 
-        // Apply gravity
-        self.velocity.y += Player::GRAVITY * delta_time;
+        if self.jump_time <= 0.0 {
+            // Apply gravity
+            self.velocity.y += Player::GRAVITY * (delta_time + self.jump_time.abs());
+            self.jump_time = 0.0;
+        }
 
         // Update Position
         self.position = self.position.add(&self.velocity.mul(delta_time));
@@ -161,7 +173,7 @@ impl Player {
         // Check Collisions
         self.grounded = false;
 
-        if self.position.clamp(Player::CIRCLE_RADIUS, screen_width() - Player::CIRCLE_RADIUS, -INFINITY, screen_height() - Player::CIRCLE_RADIUS).y != 0.0 {
+        if self.position.clamp(Player::CIRCLE_RADIUS, screen_width() - Player::CIRCLE_RADIUS, -f32::INFINITY, screen_height() - Player::CIRCLE_RADIUS).y != 0.0 {
             self.velocity.y = 0.0;
             
             if self.position.y == screen_height() - Player::CIRCLE_RADIUS {
@@ -170,29 +182,29 @@ impl Player {
         }
 
         let mut dist: Vector2;
+        let mut prev_dist: Vector2;
         let mut overlap: Vector2;
+        let mut in_x: bool;
+        let mut in_y: bool;
 
         for plat in platforms {
             dist = self.position.sub(&plat.position);
-            if dist.x.abs() < plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS && dist.y.abs() < plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS {
+            prev_dist = self.position.sub(&(plat.position.sub(&self.velocity.mul(delta_time))));
+
+            in_x = dist.x.abs() < plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS;
+            in_y = dist.y.abs() < plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS;
+
+            if (in_x && in_y) || (prev_dist.x * dist.x < 0.0 && in_y || prev_dist.y * dist.y < 0.0 && in_x || prev_dist.x * dist.x < 0.0 && prev_dist.y * dist.y < 0.0) {
                 overlap = Vector2::new(
                     if dist.x > 0.0 {plat.position.x + plat.dimensions.x / 2.0 - (self.position.x - Player::CIRCLE_RADIUS)} else {self.position.x + Player::CIRCLE_RADIUS - (plat.position.x - plat.dimensions.x / 2.0)},
                     if dist.y > 0.0 {plat.position.y + plat.dimensions.y / 2.0 - (self.position.y - Player::CIRCLE_RADIUS)} else {self.position.y + Player::CIRCLE_RADIUS - (plat.position.y - plat.dimensions.y / 2.0)},
                 );
 
                 if overlap.y < overlap.x {
-                    if self.velocity.y * dist.y <= 0.0 {
-                        self.position.y = if dist.y < 0.0 {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS} else {self.jump_time = INFINITY; plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS};
-                    } else {
-                        self.position.y = if dist.y < 0.0 {self.jump_time = INFINITY; plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS} else {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS};
-                    }
+                    self.position.y = if dist.y < 0.0 {self.grounded = true; plat.position.y - plat.dimensions.y / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.y + plat.dimensions.y / 2.0 + Player::CIRCLE_RADIUS};
                     self.velocity.y = 0.0;
                 } else {
-                    if self.velocity.x * dist.x <= 0.0 {
-                        self.position.x = if dist.x < 0.0 {plat.position.x - plat.dimensions.x / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.x + plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS};
-                    } else {
-                        self.position.x = if dist.x < 0.0 {plat.position.x + plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS} else {plat.position.x - plat.dimensions.x / 2.0 - Player::CIRCLE_RADIUS};
-                    }
+                    self.position.x = if dist.x < 0.0 {plat.position.x - plat.dimensions.x / 2.0 - Player::CIRCLE_RADIUS} else {plat.position.x + plat.dimensions.x / 2.0 + Player::CIRCLE_RADIUS};
                     self.velocity.x = 0.0;
                 }
             }
