@@ -1,6 +1,4 @@
-use core::num;
 use std::{thread::sleep, time::Duration};
-
 use macroquad::{miniquad::conf::Platform, prelude::*};
 
 fn window_conf() -> Conf{
@@ -443,7 +441,7 @@ async fn main() {
 
         screen.update(&mut player, &mut platforms, &mut enemies);
 
-        // println!("{}", get_fps());
+        // println!("{}", get_fps();
         
         frame_control();
         next_frame().await;
